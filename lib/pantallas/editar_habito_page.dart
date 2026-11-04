@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 
-import '../models/habito.dart';
-import '../models/usuario.dart';
-import '../services/base_datos_service.dart';
+import '../modelos/habito.dart';
+import '../modelos/usuario.dart';
+import '../servicios/base_datos_service.dart';
 import '../widgets/dialogos.dart';
+import '../widgets/campo_texto_app.dart';
+import '../widgets/boton_principal.dart';
 
-class EditarScreen extends StatefulWidget {
+class EditarHabitoPage extends StatefulWidget {
   final Usuario usuario;
   final Habito? habito;
   final List<Usuario> usuarios;
-  const EditarScreen({
+  const EditarHabitoPage({
     super.key,
     required this.usuario,
     this.habito,
@@ -17,10 +19,10 @@ class EditarScreen extends StatefulWidget {
   });
 
   @override
-  State<EditarScreen> createState() => _EditarScreenState();
+  State<EditarHabitoPage> createState() => _EditarHabitoPageState();
 }
 
-class _EditarScreenState extends State<EditarScreen> {
+class _EditarHabitoPageState extends State<EditarHabitoPage> {
   final formulario = GlobalKey<FormState>();
   final nombreController = TextEditingController();
   final fechasController = TextEditingController();
@@ -90,6 +92,11 @@ class _EditarScreenState extends State<EditarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    const colores = {
+      'Azul': Colors.blue,
+      'Verde': Colors.green,
+      'Naranja': Colors.orange,
+    };
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.habito == null ? 'Crear hábito' : 'Editar hábito'),
@@ -101,27 +108,28 @@ class _EditarScreenState extends State<EditarScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextFormField(
+              CampoTextoApp(
                 controller: nombreController,
-                decoration: const InputDecoration(
-                  labelText: 'Nombre del hábito',
-                ),
-                validator: (valor) => valor == null || valor.trim().isEmpty
+                etiqueta: 'Nombre del hábito',
+                validador: (valor) => valor == null || valor.trim().isEmpty
                     ? 'Escribe un nombre.'
                     : null,
+                habilitado: !guardando,
               ),
               const SizedBox(height: 20),
               const Text('Selecciona un color:'),
               Wrap(
                 spacing: 8,
                 children: [
-                  for (final color in ['Azul', 'Verde', 'Naranja'])
+                  for (final color in colores.entries)
                     ChoiceChip(
-                      label: Text(color),
-                      selected: colorSeleccionado == color,
+                      avatar: Icon(Icons.circle, color: color.value, size: 16),
+                      label: Text(color.key),
+                      selected: colorSeleccionado == color.key,
                       onSelected: guardando
                           ? null
-                          : (_) => setState(() => colorSeleccionado = color),
+                          : (_) =>
+                                setState(() => colorSeleccionado = color.key),
                     ),
                 ],
               ),
@@ -144,21 +152,21 @@ class _EditarScreenState extends State<EditarScreen> {
                   onChanged: (valor) => setState(() => usuarioId = valor!),
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                CampoTextoApp(
                   controller: fechasController,
-                  maxLines: 3,
-                  decoration: const InputDecoration(
-                    labelText: 'Fechas completadas',
-                    hintText: '2026-11-01, 2026-11-02',
-                    helperText: 'Separa las fechas con comas.',
-                  ),
-                  validator: validarFechas,
+                  maxLineas: 3,
+                  etiqueta: 'Fechas completadas',
+                  pista: '2026-11-01, 2026-11-02',
+                  ayuda: 'Separa las fechas con comas.',
+                  validador: validarFechas,
+                  habilitado: !guardando,
                 ),
               ],
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: guardando ? null : guardar,
-                child: Text(guardando ? 'Guardando...' : 'Guardar'),
+              BotonPrincipal(
+                texto: guardando ? 'Guardando...' : 'Guardar hábito',
+                alPulsar: guardar,
+                habilitado: !guardando,
               ),
               TextButton(
                 onPressed: guardando ? null : () => Navigator.pop(context),

@@ -2,9 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-import 'screens/login_screen.dart';
-import 'services/base_datos_service.dart';
-import 'services/preferencias_service.dart';
+import 'pantallas/login_page.dart';
+import 'servicios/base_datos_service.dart';
+import 'servicios/preferencias_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -98,7 +98,7 @@ class _MyAppState extends State<MyApp> {
                 ),
               ),
             )
-          : LoginScreen(alCambiarAjustes: actualizarAjustes),
+          : LoginPage(alCambiarAjustes: actualizarAjustes),
     );
   }
 }

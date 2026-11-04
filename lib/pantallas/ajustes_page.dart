@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
 
-import '../models/usuario.dart';
-import '../services/base_datos_service.dart';
-import '../services/preferencias_service.dart';
+import '../modelos/usuario.dart';
+import '../servicios/base_datos_service.dart';
+import '../servicios/preferencias_service.dart';
 import '../widgets/dialogos.dart';
+import '../widgets/campo_texto_app.dart';
+import '../widgets/boton_principal.dart';
 
-class AjustesScreen extends StatefulWidget {
+class AjustesPage extends StatefulWidget {
   final Usuario usuario;
   final VoidCallback alCambiarAjustes;
-  const AjustesScreen({
+  const AjustesPage({
     super.key,
     required this.usuario,
     required this.alCambiarAjustes,
   });
 
   @override
-  State<AjustesScreen> createState() => _AjustesScreenState();
+  State<AjustesPage> createState() => _AjustesPageState();
 }
 
-class _AjustesScreenState extends State<AjustesScreen> {
+class _AjustesPageState extends State<AjustesPage> {
   final preferencias = PreferenciasService.instancia;
   final objetivoController = TextEditingController();
   late bool oscuro;
@@ -112,15 +114,17 @@ class _AjustesScreenState extends State<AjustesScreen> {
                 ? null
                 : (valor) => setState(() => ocultar = valor),
           ),
-          TextField(
+          CampoTextoApp(
             controller: objetivoController,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Tu objetivo diario'),
+            tipoTeclado: TextInputType.number,
+            etiqueta: 'Tu objetivo diario',
+            habilitado: !guardando,
           ),
           const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: guardando ? null : guardar,
-            child: Text(guardando ? 'Guardando...' : 'Guardar ajustes'),
+          BotonPrincipal(
+            texto: guardando ? 'Guardando...' : 'Guardar ajustes',
+            alPulsar: guardar,
+            habilitado: !guardando,
           ),
           if (widget.usuario.esAdministrador) ...[
             const SizedBox(height: 30),

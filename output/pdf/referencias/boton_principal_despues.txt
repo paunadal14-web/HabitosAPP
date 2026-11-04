@@ -1,0 +1,38 @@
+import 'package:flutter/material.dart';
+
+class BotonPrincipal extends StatelessWidget {
+  final String texto;
+  final VoidCallback alPulsar;
+  final bool habilitado;
+
+  const BotonPrincipal({
+    super.key,
+    required this.texto,
+    required this.alPulsar,
+    this.habilitado = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton(
+          onPressed: habilitado ? alPulsar : null,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.indigo,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            textStyle: Theme.of(context).textTheme.labelLarge
+                ?.copyWith(fontSize: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          child: Text(texto),
+        ),
+      ),
+    );
+  }
+}

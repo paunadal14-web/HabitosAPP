@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
 
-import '../models/habito.dart';
-import '../models/estadistica.dart';
-import '../services/base_datos_service.dart';
+import '../modelos/habito.dart';
+import '../modelos/estadistica.dart';
+import '../servicios/base_datos_service.dart';
 import '../widgets/dialogos.dart';
+import '../widgets/campo_texto_app.dart';
+import '../widgets/boton_principal.dart';
 
-class EstadisticaFormScreen extends StatefulWidget {
+class EstadisticaFormPage extends StatefulWidget {
   final Estadistica? estadistica;
   final List<Habito> habitos;
-  const EstadisticaFormScreen({
+  const EstadisticaFormPage({
     super.key,
     this.estadistica,
     required this.habitos,
   });
 
   @override
-  State<EstadisticaFormScreen> createState() => _EstadisticaFormScreenState();
+  State<EstadisticaFormPage> createState() => _EstadisticaFormPageState();
 }
 
-class _EstadisticaFormScreenState extends State<EstadisticaFormScreen> {
+class _EstadisticaFormPageState extends State<EstadisticaFormPage> {
   final formulario = GlobalKey<FormState>();
   final rachaController = TextEditingController();
   final totalController = TextEditingController();
@@ -110,28 +112,29 @@ class _EstadisticaFormScreenState extends State<EstadisticaFormScreen> {
                 validator: (valor) =>
                     valor == null ? 'Selecciona un hábito.' : null,
               ),
-              TextFormField(
+              CampoTextoApp(
                 controller: rachaController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Racha actual'),
-                validator: validarNumero,
+                tipoTeclado: TextInputType.number,
+                etiqueta: 'Racha actual',
+                validador: validarNumero,
+                habilitado: !guardando,
               ),
-              TextFormField(
+              CampoTextoApp(
                 controller: totalController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Total de días completados',
-                ),
-                validator: validarNumero,
+                tipoTeclado: TextInputType.number,
+                etiqueta: 'Total de días completados',
+                validador: validarNumero,
+                habilitado: !guardando,
               ),
               const SizedBox(height: 20),
               const Text(
                 'Al marcar un día o cambiar las fechas del hábito, los números se volverán a calcular con su historial.',
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: guardando ? null : guardar,
-                child: Text(guardando ? 'Guardando...' : 'Guardar'),
+              BotonPrincipal(
+                texto: guardando ? 'Guardando...' : 'Guardar estadística',
+                alPulsar: guardar,
+                habilitado: !guardando,
               ),
             ],
           ),

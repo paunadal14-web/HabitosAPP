@@ -1,22 +1,28 @@
 import 'package:flutter/material.dart';
 
-import '../models/usuario.dart';
-import '../models/habito.dart';
-import '../models/estadistica.dart';
-import '../services/base_datos_service.dart';
-import '../services/preferencias_service.dart';
+import '../modelos/usuario.dart';
+import '../modelos/habito.dart';
+import '../modelos/estadistica.dart';
+import '../servicios/base_datos_service.dart';
+import '../servicios/preferencias_service.dart';
 import '../widgets/dialogos.dart';
-import 'estadistica_form_screen.dart';
+import '../widgets/dato_estadistica.dart';
+import 'estadistica_form_page.dart';
 
-class EstadisticasScreen extends StatefulWidget {
+class EstadisticasPage extends StatefulWidget {
   final Usuario usuario;
-  const EstadisticasScreen({super.key, required this.usuario});
+  final bool administracion;
+  const EstadisticasPage({
+    super.key,
+    required this.usuario,
+    this.administracion = false,
+  });
 
   @override
-  State<EstadisticasScreen> createState() => _EstadisticasScreenState();
+  State<EstadisticasPage> createState() => _EstadisticasPageState();
 }
 
-class _EstadisticasScreenState extends State<EstadisticasScreen> {
+class _EstadisticasPageState extends State<EstadisticasPage> {
   final baseDatos = BaseDatosService.instancia;
   List<Estadistica> estadisticas = [];
   List<Habito> habitos = [];
@@ -32,8 +38,12 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
 
   Future<void> cargar() async {
     try {
-      final listaHabitos = await baseDatos.obtenerHabitos();
-      final lista = await baseDatos.obtenerEstadisticas();
+      final listaHabitos = await baseDatos.obtenerHabitos(
+        soloPropios: !widget.administracion,
+      );
+      final lista = await baseDatos.obtenerEstadisticas(
+        soloPropios: !widget.administracion,
+      );
       if (!mounted) return;
       setState(() {
         habitos = listaHabitos;
@@ -53,7 +63,7 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
   String nombreHabito(int id) {
     for (final habito in habitos) {
       if (habito.id == id) {
-        return widget.usuario.esAdministrador
+        return widget.usuario.esAdministrador && widget.administracion
             ? '${habito.nombre} (usuario ${habito.usuarioId})'
             : habito.nombre;
       }
@@ -79,10 +89,8 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => EstadisticaFormScreen(
-          estadistica: estadistica,
-          habitos: disponibles,
-        ),
+        builder: (context) =>
+            EstadisticaFormPage(estadistica: estadistica, habitos: disponibles),
       ),
     );
     if (mounted) await cargar();
@@ -117,7 +125,8 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
         '-';
     return Scaffold(
       appBar: AppBar(title: const Text('Estadísticas')),
-      floatingActionButton: widget.usuario.esAdministrador
+      floatingActionButton:
+          widget.usuario.esAdministrador && widget.administracion
           ? FloatingActionButton(
               tooltip: 'Crear estadística',
               onPressed: cargando || borrando ? null : () => editar(),
@@ -152,11 +161,19 @@ class _EstadisticasScreenState extends State<EstadisticasScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Text('Racha actual: ${estadistica.rachaActual} días'),
-                          Text(
-                            'Total de días completados: ${estadistica.totalDias}',
+                          DatoEstadistica(
+                            etiqueta: 'Racha actual',
+                            valor: '${estadistica.rachaActual}',
+                            icono: Icons.local_fire_department_outlined,
                           ),
-                          if (widget.usuario.esAdministrador)
+                          DatoEstadistica(
+                            etiqueta: 'Días completados',
+                            valor: '${estadistica.totalDias}',
+                            icono: Icons.event_available,
+                            color: Colors.green,
+                          ),
+                          if (widget.usuario.esAdministrador &&
+                              widget.administracion)
                             Wrap(
                               spacing: 12,
                               children: [

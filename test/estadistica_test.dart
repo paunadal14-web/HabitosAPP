@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:habitos_app/models/habito.dart';
-import 'package:habitos_app/models/estadistica.dart';
+import 'package:habitos_app/modelos/habito.dart';
+import 'package:habitos_app/modelos/estadistica.dart';
 
 void main() {
   Estadistica calcular(List<String> fechas) {

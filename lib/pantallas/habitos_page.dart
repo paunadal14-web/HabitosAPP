@@ -1,31 +1,33 @@
 import 'package:flutter/material.dart';
 
-import '../models/usuario.dart';
-import '../models/habito.dart';
-import '../services/base_datos_service.dart';
-import '../services/preferencias_service.dart';
+import '../modelos/usuario.dart';
+import '../modelos/habito.dart';
+import '../servicios/base_datos_service.dart';
+import '../servicios/preferencias_service.dart';
 import '../widgets/dialogos.dart';
-import 'editar_screen.dart';
-import 'login_screen.dart';
-import 'usuarios_screen.dart';
-import 'estadisticas_screen.dart';
-import 'ajustes_screen.dart';
+import 'editar_habito_page.dart';
+import 'login_page.dart';
+import 'administracion_page.dart';
+import '../widgets/tarjeta_habito.dart';
+import 'estadisticas_page.dart';
+import 'ajustes_page.dart';
 
-class PrincipalScreen extends StatefulWidget {
+class HabitosPage extends StatefulWidget {
   final Usuario usuario;
+  final bool administracion;
   final VoidCallback alCambiarAjustes;
-  const PrincipalScreen({
+  const HabitosPage({
     super.key,
     required this.usuario,
+    this.administracion = false,
     required this.alCambiarAjustes,
   });
 
   @override
-  State<PrincipalScreen> createState() => _PrincipalScreenState();
+  State<HabitosPage> createState() => _HabitosPageState();
 }
 
-class _PrincipalScreenState extends State<PrincipalScreen>
-    with WidgetsBindingObserver {
+class _HabitosPageState extends State<HabitosPage> with WidgetsBindingObserver {
   final baseDatos = BaseDatosService.instancia;
   final preferencias = PreferenciasService.instancia;
   late Usuario usuario;
@@ -58,7 +60,9 @@ class _PrincipalScreenState extends State<PrincipalScreen>
   Future<void> cargar() async {
     try {
       final actual = await baseDatos.usuarioActual();
-      final lista = await baseDatos.obtenerHabitos();
+      final lista = await baseDatos.obtenerHabitos(
+        soloPropios: !widget.administracion,
+      );
       final listaUsuarios = actual.esAdministrador
           ? await baseDatos.obtenerUsuarios()
           : <Usuario>[];
@@ -85,7 +89,7 @@ class _PrincipalScreenState extends State<PrincipalScreen>
       context,
       MaterialPageRoute(
         builder: (context) =>
-            LoginScreen(alCambiarAjustes: widget.alCambiarAjustes),
+            LoginPage(alCambiarAjustes: widget.alCambiarAjustes),
       ),
       (ruta) => false,
     );
@@ -95,8 +99,11 @@ class _PrincipalScreenState extends State<PrincipalScreen>
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            EditarScreen(usuario: usuario, habito: habito, usuarios: usuarios),
+        builder: (context) => EditarHabitoPage(
+          usuario: usuario,
+          habito: habito,
+          usuarios: usuarios,
+        ),
       ),
     );
     if (mounted) await cargar();
@@ -131,10 +138,13 @@ class _PrincipalScreenState extends State<PrincipalScreen>
     }
   }
 
-  Future<void> abrirUsuarios() async {
+  Future<void> abrirAdministracion() async {
     await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const UsuariosScreen()),
+      MaterialPageRoute(
+        builder: (context) =>
+            AdministracionPage(alCambiarAjustes: widget.alCambiarAjustes),
+      ),
     );
     if (!mounted) return;
     try {
@@ -149,7 +159,7 @@ class _PrincipalScreenState extends State<PrincipalScreen>
     final borrado = await Navigator.push<bool>(
       context,
       MaterialPageRoute(
-        builder: (context) => AjustesScreen(
+        builder: (context) => AjustesPage(
           usuario: usuario,
           alCambiarAjustes: widget.alCambiarAjustes,
         ),
@@ -188,7 +198,9 @@ class _PrincipalScreenState extends State<PrincipalScreen>
     }
     return Scaffold(
       appBar: AppBar(
-        title: const Text('HabitosApp'),
+        title: Text(
+          widget.administracion ? 'Todos los hábitos' : 'Mis hábitos',
+        ),
         actions: [
           IconButton(
             tooltip: 'Estadísticas',
@@ -198,16 +210,18 @@ class _PrincipalScreenState extends State<PrincipalScreen>
                 : () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) =>
-                          EstadisticasScreen(usuario: usuario),
+                      builder: (context) => EstadisticasPage(
+                        usuario: usuario,
+                        administracion: widget.administracion,
+                      ),
                     ),
                   ),
           ),
-          if (usuario.esAdministrador)
+          if (usuario.esAdministrador && !widget.administracion)
             IconButton(
-              tooltip: 'Usuarios',
-              icon: const Icon(Icons.people),
-              onPressed: ocupado ? null : abrirUsuarios,
+              tooltip: 'Administración',
+              icon: const Icon(Icons.admin_panel_settings),
+              onPressed: ocupado ? null : abrirAdministracion,
             ),
           IconButton(
             tooltip: 'Ajustes',
@@ -254,7 +268,7 @@ class _PrincipalScreenState extends State<PrincipalScreen>
                   Text(
                     'Tu progreso de hoy: $completados de ${preferencias.objetivo(usuario.id!)} hábitos',
                   ),
-                  if (usuario.esAdministrador)
+                  if (widget.administracion)
                     const Text(
                       'Administrador: se muestran los hábitos de todos los usuarios.',
                     ),
@@ -266,59 +280,17 @@ class _PrincipalScreenState extends State<PrincipalScreen>
                           : 'No hay hábitos pendientes para mostrar.',
                     ),
                   for (final habito in visibles)
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            CheckboxListTile(
-                              contentPadding: EdgeInsets.zero,
-                              title: Text(
-                                habito.nombre,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              secondary: Icon(
-                                Icons.circle,
-                                color: colorDelHabito(habito.color),
-                              ),
-                              value: habito.completadoHoy,
-                              onChanged: ocupado
-                                  ? null
-                                  : (valor) => marcar(habito, valor!),
-                            ),
-                            Text('Color: ${habito.color}'),
-                            if (usuario.esAdministrador)
-                              Text(
-                                'Usuario: ${nombreDelUsuario(habito.usuarioId)}',
-                              ),
-                            Text(
-                              habito.fechasCompletadas.isEmpty
-                                  ? 'Sin días completados'
-                                  : 'Fechas: ${habito.fechasCompletadas.join(', ')}',
-                            ),
-                            Wrap(
-                              spacing: 12,
-                              children: [
-                                TextButton(
-                                  onPressed: ocupado
-                                      ? null
-                                      : () => editarHabito(habito),
-                                  child: const Text('Editar'),
-                                ),
-                                TextButton(
-                                  onPressed: ocupado
-                                      ? null
-                                      : () => borrar(habito),
-                                  child: const Text('Borrar'),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
+                    TarjetaHabito(
+                      nombre: habito.nombre,
+                      color: colorDelHabito(habito.color),
+                      completadoHoy: habito.completadoHoy,
+                      detalle: widget.administracion
+                          ? 'Usuario: ${nombreDelUsuario(habito.usuarioId)}'
+                          : 'Días registrados: ${habito.fechasCompletadas.length}',
+                      habilitado: !ocupado,
+                      alCompletar: (valor) => marcar(habito, valor),
+                      alEditar: () => editarHabito(habito),
+                      alEliminar: () => borrar(habito),
                     ),
                 ],
               ),

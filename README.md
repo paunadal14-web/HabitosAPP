@@ -16,7 +16,7 @@ Esta versión usa SQLite en Android y escritorio. No está preparada para ejecut
 ## Qué puede hacer cada cuenta
 
 - Usuario: crear, ver, editar y borrar sus hábitos, marcar el día y consultar sus estadísticas.
-- Administrador: gestionar los usuarios, los hábitos de cualquier cuenta y las estadísticas. Puede cambiar roles y asignar hábitos a otro usuario.
+- Administrador: desde Administración puede gestionar los usuarios, los hábitos de cualquier cuenta y las estadísticas. Puede cambiar roles y asignar hábitos a otro usuario. Mis hábitos muestra sus propios registros.
 - Debe quedar al menos un administrador. La aplicación no deja borrar o quitar el rol al último.
 - Los ajustes permiten cambiar el tema, el tamaño de letra, el objetivo diario y ocultar hábitos completados.
 - El administrador puede restablecer toda la instalación desde Ajustes, con confirmación.
@@ -25,11 +25,11 @@ Se pide iniciar sesión al abrir la app. No se guarda la contraseña en las pref
 
 ## Organización
 
-- `lib/models/`: clases Usuario, Habito y Estadistica.
-- `lib/services/base_datos_service.dart`: creación de tablas, consultas y comprobación de permisos.
-- `lib/services/preferencias_service.dart`: ajustes, objetivos y aperturas.
-- `lib/screens/`: pantallas de la app.
-- `lib/widgets/`: formulario de usuario y diálogos compartidos.
+- `lib/modelos/`: clases Usuario, Habito y Estadistica.
+- `lib/servicios/base_datos_service.dart`: creación de tablas, consultas y comprobación de permisos.
+- `lib/servicios/preferencias_service.dart`: ajustes, objetivos y aperturas.
+- `lib/pantallas/`: pantallas de la app.
+- `lib/widgets/`: componentes reutilizables y diálogos compartidos.
 - `test/`: pruebas de datos, permisos, rachas y formularios.
 
 ## Base de datos
@@ -58,3 +58,37 @@ flutter test
 Las pruebas de SQLite usan datos temporales, sin tocar las cuentas de la app.
 
 Documentación consultada: [sqflite](https://pub.dev/packages/sqflite), [shared_preferences](https://pub.dev/packages/shared_preferences), [sqflite_common_ffi](https://pub.dev/packages/sqflite_common_ffi) y [bcrypt](https://pub.dev/packages/bcrypt).
+
+
+## Interfaces y componentes (ACT02)
+
+Los cuatro componentes son `StatelessWidget` y cada uno tiene su archivo en `lib/widgets/`:
+
+- `CampoTextoApp`: etiqueta, controlador, contraseña oculta y validación. Se usa en login, registro y formularios.
+- `BotonPrincipal`: texto y callback de la acción, con un estilo común.
+- `TarjetaHabito`: nombre, color, estado y callbacks para completar, editar y eliminar.
+- `DatoEstadistica`: etiqueta, valor, icono y color opcional para mostrar distintos datos con el mismo diseño.
+
+Las pantallas crean y liberan sus controladores. Los componentes reciben valores y funciones. El acceso a SQLite y a las preferencias permanece en los servicios.
+
+La pantalla `administracion_page.dart` reúne las gestiones de usuarios, hábitos y estadísticas. El usuario normal no tiene ese acceso y el servicio comprueba los permisos al operar con los datos.
+
+## Memoria de entrega
+
+El PDF está en [output/pdf/HabitosApp_ACT02_Interfaces_y_componentes.pdf](output/pdf/HabitosApp_ACT02_Interfaces_y_componentes.pdf). Incluye capturas, navegación, el recorrido de un hábito, los roles, el árbol real de archivos, el código completo de los cuatro componentes y ejemplos de sus parámetros y callbacks.
+
+Las capturas están en `output/pdf/capturas/`. Se han renderizado con las pantallas de Flutter usando cuentas de ejemplo y SQLite temporal. No utilizan las cuentas guardadas de la aplicación. La comparación visual conserva el botón azul anterior y el botón índigo final, con sus dos versiones de código en `output/pdf/referencias/`.
+
+Para regenerar las capturas finales en Windows:
+
+```text
+flutter test --no-pub --dart-define=GENERAR_CAPTURAS=true test/documentacion/capturas_test.dart
+```
+
+Para regenerar el documento, con Python, reportlab y Pillow instalados:
+
+```text
+python tool/generar_pdf.py
+```
+
+Las capturas se omiten en una ejecución normal de `flutter test` y se generan solo al indicar `GENERAR_CAPTURAS=true`.

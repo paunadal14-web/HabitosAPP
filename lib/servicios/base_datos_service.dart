@@ -5,9 +5,9 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 
-import '../models/usuario.dart';
-import '../models/habito.dart';
-import '../models/estadistica.dart';
+import '../modelos/usuario.dart';
+import '../modelos/habito.dart';
+import '../modelos/estadistica.dart';
 
 class BaseDatosService {
   static final instancia = BaseDatosService();
@@ -214,12 +214,12 @@ class BaseDatosService {
     await _db.delete('usuarios', where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<List<Habito>> obtenerHabitos() async {
+  Future<List<Habito>> obtenerHabitos({bool soloPropios = false}) async {
     final usuario = await usuarioActual();
     final datos = await _db.query(
       'habitos',
-      where: usuario.esAdministrador ? null : 'usuario_id = ?',
-      whereArgs: usuario.esAdministrador ? null : [usuario.id],
+      where: usuario.esAdministrador && !soloPropios ? null : 'usuario_id = ?',
+      whereArgs: usuario.esAdministrador && !soloPropios ? null : [usuario.id],
       orderBy: 'id DESC',
     );
     return datos.map((fila) => Habito.fromMap(fila)).toList();
@@ -350,15 +350,17 @@ class BaseDatosService {
     });
   }
 
-  Future<List<Estadistica>> obtenerEstadisticas() async {
+  Future<List<Estadistica>> obtenerEstadisticas({
+    bool soloPropios = false,
+  }) async {
     final usuario = await usuarioActual();
     // El JOIN permite filtrar las estadísticas por el dueño del hábito.
     final datos = await _db.rawQuery('''
       SELECT e.* FROM estadisticas e
       INNER JOIN habitos h ON h.id = e.habito_id
-      ${usuario.esAdministrador ? '' : 'WHERE h.usuario_id = ?'}
+      ${usuario.esAdministrador && !soloPropios ? '' : 'WHERE h.usuario_id = ?'}
       ORDER BY e.id
-    ''', usuario.esAdministrador ? [] : [usuario.id]);
+    ''', usuario.esAdministrador && !soloPropios ? [] : [usuario.id]);
     final resultado = <Estadistica>[];
     for (final fila in datos) {
       final estadistica = Estadistica.fromMap(fila);

@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:habitos_app/models/usuario.dart';
-import 'package:habitos_app/models/habito.dart';
-import 'package:habitos_app/models/estadistica.dart';
-import 'package:habitos_app/services/base_datos_service.dart';
+import 'package:habitos_app/modelos/usuario.dart';
+import 'package:habitos_app/modelos/habito.dart';
+import 'package:habitos_app/modelos/estadistica.dart';
+import 'package:habitos_app/servicios/base_datos_service.dart';
 
 Usuario datosUsuario(String nombre, {String rol = 'usuario'}) {
   return Usuario(
@@ -145,6 +145,8 @@ void main() {
     await db.marcarHoy(habitoAna.id!, false);
     expect((await db.obtenerEstadisticas()).single.totalDias, 0);
     await db.iniciarSesion('admin', 'clave123');
+    expect(await db.obtenerHabitos(soloPropios: true), isEmpty);
+    expect(await db.obtenerEstadisticas(soloPropios: true), isEmpty);
     await db.guardarHabito(
       Habito(
         id: habitoAna.id,

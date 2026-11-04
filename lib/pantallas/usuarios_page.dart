@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 
-import '../models/usuario.dart';
-import '../services/base_datos_service.dart';
+import '../modelos/usuario.dart';
+import '../servicios/base_datos_service.dart';
 import '../widgets/dialogos.dart';
-import 'usuario_form_screen.dart';
+import 'usuario_form_page.dart';
 
-class UsuariosScreen extends StatefulWidget {
-  const UsuariosScreen({super.key});
+class UsuariosPage extends StatefulWidget {
+  const UsuariosPage({super.key});
 
   @override
-  State<UsuariosScreen> createState() => _UsuariosScreenState();
+  State<UsuariosPage> createState() => _UsuariosPageState();
 }
 
-class _UsuariosScreenState extends State<UsuariosScreen> {
+class _UsuariosPageState extends State<UsuariosPage> {
   final baseDatos = BaseDatosService.instancia;
   List<Usuario> usuarios = [];
   bool cargando = true;
@@ -60,7 +60,7 @@ class _UsuariosScreenState extends State<UsuariosScreen> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => UsuarioFormScreen(usuario: usuario),
+        builder: (context) => UsuarioFormPage(usuario: usuario),
       ),
     );
     if (mounted) await cargar();
